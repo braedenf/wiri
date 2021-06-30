@@ -45,14 +45,27 @@ void ofApp::setup()
 //--------------------------------------------------------------
 void ofApp::update()
 {	
+	static uint8_t myByte = 0;
+	
 	if(sendData) {
 		// The serial device can throw exeptions.
 		try
 		{	
-			if(isSoundPlaying) {
+			
+			//Only send data when arduino sends a 1 over serial
+			// Read all bytes from the device;
+
+			while (device.available() > 0)
+			{
+				device.readByte(myByte);
+				
+			}
+			
+			
+			if(isSoundPlaying && myByte == 1) {
 				std::string msg = '<' + to_string(isSoundPlaying) + ',' + to_string(ofGetMouseX()) + ',' + to_string(ofGetMouseY()) + ',' + to_string(currentWaveform) + '>';
 
-				cout << msg << endl;
+				//cout << msg << endl;
 
 				//Write message to text buffer
 				ofx::IO::ByteBuffer textBuffer(msg);
@@ -60,10 +73,10 @@ void ofApp::update()
 				//Write text buffer to serial
 				device.writeBytes(textBuffer);
 				device.writeByte('\n');
-			} else {
+			} else if(myByte == 1){
 				std::string msg = '<' + to_string(isSoundPlaying) + ',' + to_string(ofGetMouseX()) + ',' + to_string(ofGetMouseY()) + ',' + to_string(currentWaveform) + '>';
 
-				cout << msg << endl;
+				//cout << msg << endl;
 
 				//Write message to text buffer
 				ofx::IO::ByteBuffer textBuffer(msg);
@@ -74,6 +87,7 @@ void ofApp::update()
 				
 				//stop writing data
 				sendData = false;
+				myByte = 0;
 			}
 			
 			

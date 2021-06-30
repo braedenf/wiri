@@ -9,12 +9,15 @@
 
 
 // GUItool: begin automatically generated code
-AudioSynthWaveformModulated waveformMod1;       //xy=506,376
-AudioOutputI2S           i2s1;           //xy=794,379
-AudioConnection          patchCord1(waveformMod1, 0, i2s1, 0);
-AudioConnection          patchCord2(waveformMod1, 0, i2s1, 1);
-AudioControlSGTL5000     audioShield;     //xy=586,175
+AudioSynthWaveformModulated waveformMod1;   //xy=366,366
+AudioEffectEnvelope      envelope1;      //xy=578,325
+AudioOutputI2S           i2s1;           //xy=819,380
+AudioConnection          patchCord1(waveformMod1, envelope1);
+AudioConnection          patchCord2(envelope1, 0, i2s1, 0);
+AudioConnection          patchCord3(envelope1, 0, i2s1, 1);
+AudioControlSGTL5000     audioShield;     //xy=353,534
 // GUItool: end automatically generated code
+
 
 
 // ---------------------------FAST LED---------------------------
@@ -44,6 +47,8 @@ CRGBArray<STRIP_COUNT> leds;
 
 // ---------------------------LIGHT/SOUND PROPS---------------------------
 
+bool noteIsOn;
+
 uint8_t sinWave;
 uint8_t sawWave;
 uint8_t squareWave;
@@ -56,6 +61,7 @@ float triFreq = 0.2;
 
 
 //---------------------------SERIAL---------------------------
+bool startReceiving;
 const byte numChars = 32;
 char receivedChars[numChars];
 char tempChars[numChars]; // temporary array for use when parsing
@@ -71,16 +77,16 @@ int current_waveform = 0; //Stores the type of waveform (sine, sawtooth, square,
 float waveVol = 0.0;
 int waveFrequency = 220;
 
-boolean newData = false;
+bool newData = false;
 
 //---------------------------SETUP---------------------------
 void setup() {
   delay(3000); // sanity delay
 
   // Set up audio shield
-  AudioMemory(8);
+  AudioMemory(12);
   audioShield.enable();
-  audioShield.volume(0.45);
+  audioShield.volume(0.8);
 
 
   // Open Serial communication
@@ -92,8 +98,12 @@ void setup() {
   FastLED.addLeds<WS2812SERIAL, STRIP_1_PIN, BRG>(leds, leds.size()).setCorrection( TypicalLEDStrip );
 
   //Initialise waveform
-  current_waveform = WAVEFORM_SINE;
-  waveformMod1.begin(current_waveform); 
+  noteIsOn = true;
+  current_waveform = WAVEFORM_TRIANGLE_VARIABLE;
+  waveformMod1.begin(current_waveform);
+  waveformMod1.amplitude(1.0);
+
+  startReceiving = true; //Start receiving serial data
 }
 
 //---------------------------LOOP---------------------------
@@ -118,21 +128,33 @@ void loop() {
    * that control the frequency and amplitude of the sound wave, as well as
    * the modulation rate of the lights.
    */
+
+  if(startReceiving) {
+    Serial.write(1);
+  }
+  
   recvWithStartEndMarkers();
     if (newData == true) {
+        startReceiving = false; //stop receiving until message has been processed
         strcpy(tempChars, receivedChars); // this temporary copy is necessary to protect the original data
         parseData(); //Parse the data into the variables given the correct syntax
-        showParsedData(); //Uncomment in production only for debug
+        //showParsedData(); //Comment in production only for debug
         newData = false; //Only parse data when new data is avaliable
-
+        
         /*
          * Toggle the volume on and off only when the screem is pressed in openframeworks application
          */
         if(toggle) {
-          waveVol = map(mouseY, 0, 1080, 0.2, 1.0); // Map the Y coordinate to the amplitude of waveform
+          if(noteIsOn) {
+            envelope1.noteOn();
+            noteIsOn = false; //Turn off to avoid turning on every loop cycle
+          }
+          
+          waveVol = mapfloat(mouseY, 0, 1080, 0.2, 0.6); // Map the Y coordinate to the amplitude of waveform
           waveFrequency = map(mouseX, 0, 1920, 160, 520); // Map the X coordinate to frequency of the waveform
         } else {
-          waveVol = 0.0; //Turn the sound off
+           envelope1.noteOff();
+           noteIsOn = true; //ready for when screen is touched again
         }
 
         /*
@@ -145,24 +167,30 @@ void loop() {
           case 0 :
             current_waveform = WAVEFORM_SINE;
             sinFreq = map(mouseX, 0, 1920, 0.2, 0.6);
+            waveformMod1.begin(current_waveform); //Restart Waveform on Wave Change
             break;
           case 1 :
 
             current_waveform = WAVEFORM_SAWTOOTH;
             sawWave = map(mouseX, 0, 1920, 0.2, 0.6);
+            waveformMod1.begin(current_waveform); //Restart Waveform on Wave Change
             break;
           case 2 :
             current_waveform = WAVEFORM_SQUARE;
             squareWave = map(mouseX, 0, 1920, 0.2, 0.6);
+            waveformMod1.begin(current_waveform); //Restart Waveform on Wave Change
             break;
           case 3 :
             current_waveform = WAVEFORM_TRIANGLE;
             triangleWave = map(mouseX, 0, 1920, 0.2, 0.6);
+            waveformMod1.begin(current_waveform); //Restart Waveform on Wave Change
             break;
           default:
             Serial.println("Invalid number: Choose a number from 0 to 3");
             current_waveform = 0;
         }
+        
+        
 
         /*
          * Set the amplitude and frequency for the
@@ -170,6 +198,8 @@ void loop() {
          */
         waveformMod1.amplitude(waveVol);
         waveformMod1.frequency(waveFrequency);
+
+        startReceiving = true; // Only start receiving new data once current data has been processed
         
     } // END SERIAL
   
@@ -204,4 +234,9 @@ void loop() {
   // Display the LEDS last
   FastLED.show();
   
+}
+
+float mapfloat(float x, float in_min, float in_max, float out_min, float out_max)
+{
+  return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
 }
