@@ -135,7 +135,7 @@ void loop() {
   
   recvWithStartEndMarkers();
     if (newData == true) {
-        startReceiving = false; //stop receiving until message has been processed
+        startReceiving = false; //stop receiving until serial data has been processed
         strcpy(tempChars, receivedChars); // this temporary copy is necessary to protect the original data
         parseData(); //Parse the data into the variables given the correct syntax
         //showParsedData(); //Comment in production only for debug
@@ -167,30 +167,26 @@ void loop() {
           case 0 :
             current_waveform = WAVEFORM_SINE;
             sinFreq = map(mouseX, 0, 1920, 0.2, 0.6);
-            waveformMod1.begin(current_waveform); //Restart Waveform on Wave Change
             break;
           case 1 :
 
             current_waveform = WAVEFORM_SAWTOOTH;
             sawWave = map(mouseX, 0, 1920, 0.2, 0.6);
-            waveformMod1.begin(current_waveform); //Restart Waveform on Wave Change
             break;
           case 2 :
             current_waveform = WAVEFORM_SQUARE;
             squareWave = map(mouseX, 0, 1920, 0.2, 0.6);
-            waveformMod1.begin(current_waveform); //Restart Waveform on Wave Change
             break;
           case 3 :
             current_waveform = WAVEFORM_TRIANGLE;
             triangleWave = map(mouseX, 0, 1920, 0.2, 0.6);
-            waveformMod1.begin(current_waveform); //Restart Waveform on Wave Change
             break;
           default:
             Serial.println("Invalid number: Choose a number from 0 to 3");
             current_waveform = 0;
         }
         
-        
+        waveformMod1.begin(current_waveform); //Restart Waveform on Wave Change
 
         /*
          * Set the amplitude and frequency for the
