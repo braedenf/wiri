@@ -73,6 +73,9 @@ void ofApp::update()
 				//Write text buffer to serial
 				device.writeBytes(textBuffer);
 				device.writeByte('\n');
+				
+				myByte = 0; //Reset to 0 until handshake with teensy
+				
 			} else if(myByte == 1){
 				std::string msg = '<' + to_string(isSoundPlaying) + ',' + to_string(ofGetMouseX()) + ',' + to_string(ofGetMouseY()) + ',' + to_string(currentWaveform) + '>';
 
@@ -87,9 +90,9 @@ void ofApp::update()
 				
 				//stop writing data
 				sendData = false;
-				myByte = 0;
+				
+				myByte = 0; //Reset to 0 until handshake with teensy
 			}
-			
 			
 		}
 		catch (const std::exception &exc)
@@ -103,7 +106,14 @@ void ofApp::update()
 //--------------------------------------------------------------
 void ofApp::draw()
 {
-
+	
+	/*
+	 * Draw a star shape that changes on mouseX for number of points and
+	 * mouseY changes the length of each point.
+	 * The star changes color on every mouse release to cycle
+	 * the different accociated waveforms.
+	 */
+	
 	float xPct = (float)(mouseX) / (float)(ofGetWidth());
 	float yPct = (float)(mouseY) / (float)(ofGetHeight());
 	int nTips = 5 + xPct * 30;
