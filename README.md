@@ -1,30 +1,31 @@
-# About emptyExample
+# About WIRI
 
-![Screenshot of emptyExample](emptyExample.png)
+![Screenshot of WiriInstall](IMG_20210702_094747.jpg)
 
-### Learning Objectives
+### Description
 
-This example is the simplest possible openFrameworks app! It does nothing. 
+*Wiri* is an interactive sound and light installation created by the Museum of Transport and Technology in Auckland New Zealand.
 
-...Well, *almost* nothing. Although it may not be apparent, the emptyExample activates all of the default system states. (For example, it sets the default fill color to white; it just doesn't happen to draw anything with it.)
-
-The emptyExample is great for making sure that your openFrameworks development environment is compiling properly. It can also be useful as a "starter template" for making simple programs. 
-
-The emptyExample will help you understand what are the bare necessities of an openFrameworks program. In this regard, you can think of it as a "Hello World" for OF. 
+Wiri is about how both sound and light are forms of vibration where there four distinctive primitive waveforms that define how the shape of a waveform can have unique characteristics. The term Wiri is steeped in significance in Maori culture and signifies the vibration of Life.
 
 
-### Expected Behavior
+### OpenFrameWorks Application
 
-When launching this app, you should see a light-gray screen. 
+This application is built using the C++ library called [OpenFrameworks](https://openframeworks.cc/) - This application is using version *0.11.2* currently. 
 
-* There's no interaction. 
-* There's nothing to see. 
-* That's it. 
+#### Instructions for building the app
 
-Instructions for using the app:
+* Using the OpenFrameworks make system you can run *make* in the terminal or command line to compile and build and executible on your chosen operating system.
+* Once the application has been built run *make run*  or *cd /bin* and *./wiri* to run the application.
 
-* There's nothing to do. Move along.
+#### Dependencies
+* [ofxSerial](https://github.com/bakercp/ofxSerial)
 
-### Other classes used in this file
+### Arduino Application
 
-This example uses no other classes.
+The Arduino app is built for using the Arduino compatible microcontroller [Teensy 4.0](https://www.pjrc.com/store/teensy40.html). Additionally Wiri uses the Teensy 4.0 compatible [audio board](https://www.pjrc.com/store/teensy3_audio.html) to generate and modulate waveforms. Wiri also uses individually addressable led strips - *WS2812B* strips that are controlled using the [Fastled LED library](http://fastled.io/) and the [WS812B Teesny Serial Library](https://www.pjrc.com/non-blocking-ws2812-led-library/) together. 
+
+#### Dependencies
+* [FastLed](https://github.com/FastLED/FastLED)
+* [WS2812Serial](https://github.com/PaulStoffregen/WS2812Serial)
+
